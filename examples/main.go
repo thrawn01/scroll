@@ -29,13 +29,6 @@ func main() {
 		ProtectedAPIHost: "private.local",
 	}
 
-	handlerSpec := scroll.Spec{
-		Scope:   scroll.ScopePublic,
-		Methods: []string{"GET"},
-		Paths:   []string{"/"},
-		Handler: index,
-	}
-
 	fmt.Printf("Starting %s on %s:%d...\n", name, host, port)
 
 	app, err := scroll.NewAppWithConfig(appConfig)
@@ -43,7 +36,21 @@ func main() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	app.AddHandler(handlerSpec)
+
+	app.AddHandler(scroll.Spec{
+		Scope:   scroll.ScopePublic,
+		Methods: []string{"GET"},
+		Paths:   []string{"/"},
+		Handler: index,
+	})
+
+	app.AddHandler(scroll.Spec{
+		Scope:   scroll.ScopePublic,
+		Methods: []string{"GET"},
+		Paths:   []string{"/items/{item:[^/]+}"},
+		Handler: items,
+	})
+
 	if err = app.Run(); err != nil {
 		os.Exit(1)
 	}
@@ -51,4 +58,7 @@ func main() {
 
 func index(w http.ResponseWriter, r *http.Request, params map[string]string) (interface{}, error) {
 	return scroll.Response{"message": "Hello World"}, nil
+}
+func items(w http.ResponseWriter, r *http.Request, params map[string]string) (interface{}, error) {
+	return scroll.Response{"item": params["item"]}, nil
 }
